@@ -1,7 +1,9 @@
 # info2parser
 
-A simple Go library and CLI tool to parse INFO2 `$I` files, from the Windows Recycle Bin. \n
-It extracts metadata such as the original file path, deletion time, and original size. \n
+A simple Go library and CLI tool to parse INFO2 `$I` files, from the Windows Recycle Bin. 
+
+It extracts metadata such as the original file path, deletion time, and original size.
+
 [DISCLAIMER] Only works for files from Windows 10 and 11
 
 ## Instalation
