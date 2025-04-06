@@ -1,7 +1,8 @@
 # info2parser
 
-A simple Go library and CLI tool to parse INFO2 `$I` files, from the Windows Recycle Bin (After Windows 10)
+A simple Go library and CLI tool to parse INFO2 `$I` files, from the Windows Recycle Bin.
 It extracts metadata such as the original file path, deletion time, and original size.
+[DISCLAIMER] Only works for files from Windows 10 and 11
 
 ## Instalation
 
@@ -11,6 +12,7 @@ It extracts metadata such as the original file path, deletion time, and original
 
 ### CLI
 ``` info2parser -file [file] ```
+Output: 
 ```
 ==== $I FILE ====
 Header          : 1
@@ -25,7 +27,7 @@ OriginalPath    : C:\Users\JohnDoe\Desktop\secret.txt
 import "github.com/gobelinor/info2parser"
 
 func main() {
-    data, err := os.ReadFile("path/to/$I123ABC.txt")
+    data, err := os.ReadFile("path/to/$I123ABC")
     if err != nil {
         log.Fatal(err)
     }
