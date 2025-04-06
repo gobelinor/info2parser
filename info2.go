@@ -35,7 +35,7 @@ func decodeUTF16LE(b []byte) string {
 
 func Parse(data []byte) (Info2, error) {
 	if len(data) < 28 {
-		return Info2{}, fmt.Errorf("file too small to be a valid $I* file")
+		return Info2{}, fmt.Errorf("file invalid")
 	}
 
 	header := binary.LittleEndian.Uint64(data[0:8])
@@ -43,6 +43,10 @@ func Parse(data []byte) (Info2, error) {
 	deletionTimeRaw := int64(binary.LittleEndian.Uint64(data[16:24]))
 	fileNameLength := binary.LittleEndian.Uint32(data[24:28])
 	originalPath := decodeUTF16LE(data[28:])
+
+	if len(originalPath)+1 != int(fileNameLength) {
+		return Info2{}, fmt.Errorf("file invalid")
+	}
 
 	return Info2{
 		Header:         header,
