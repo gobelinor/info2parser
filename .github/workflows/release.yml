@@ -1,50 +1,64 @@
-name: build-cross
+name: build-and-release (simple)
 
 on:
   push:
-    branches: [ "main" ]
-    tags: [ "v*" ]
+    branches: [ "main" ]      # builds visibles dans les logs
+    tags:     [ "v*" ]        # si tag -> crée/maj la Release avec les binaires
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        os:    [ linux, windows, darwin ]
-        arch:  [ amd64, arm64 ]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version: "1.23.x"
           cache: true
 
-      - name: Download deps
-        run: |
-          go mod download
-          go mod tidy
+      - name: Ensure deps
+        run: go mod download
 
-      - name: Build (${{ matrix.os }}/${{ matrix.arch }})
+      - name: Cross-compile all targets
         env:
-          GOOS: ${{ matrix.os }}
-          GOARCH: ${{ matrix.arch }}
           CGO_ENABLED: 0
         run: |
+          set -euo pipefail
           mkdir -p dist
-          EXT=""
-          if [ "${GOOS}" = "windows" ]; then EXT=".exe"; fi
-          OUT="dist/info2parser-${GOOS}-${GOARCH}${EXT}"
-          go build -trimpath -ldflags="-s -w" -o "${OUT}" ./info2parser
+          targets=(
+            "linux/amd64"
+            "linux/arm64"
+            "windows/amd64"
+            "windows/arm64"
+            "darwin/amd64"
+            "darwin/arm64"
+          )
+          for t in "${targets[@]}"; do
+            IFS=/ read -r GOOS GOARCH <<< "$t"
+            EXT=""
+            [ "$GOOS" = "windows" ] && EXT=".exe"
+            OUT="dist/info2parser-${GOOS}-${GOARCH}${EXT}"
+            echo "-> Building $OUT"
+            GOOS="$GOOS" GOARCH="$GOARCH" go build -trimpath -ldflags="-s -w" -o "$OUT" ./info2parser
+          done
+          ls -lh dist
 
-
-      - name: Upload artifact
+      - name: Upload artifacts (CI run view)
         uses: actions/upload-artifact@v4
         with:
-          name: info2parser-${{ matrix.os }}-${{ matrix.arch }}
+          name: info2parser-binaries
           path: dist/*
-          if-no-files-found: error
+
+      - name: Publish GitHub Release (only on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
