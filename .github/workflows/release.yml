@@ -24,7 +24,9 @@ jobs:
           cache: true
 
       - name: Download deps
-        run: go mod download
+        run: |
+          go mod download
+          go mod tidy
 
       - name: Build (${{ matrix.os }}/${{ matrix.arch }})
         env:
