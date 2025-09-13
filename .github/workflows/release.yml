@@ -3,6 +3,7 @@ name: build-cross
 on:
   push:
     branches: [ "main" ]
+    tags: [ "v*" ]
 
 jobs:
   build:
