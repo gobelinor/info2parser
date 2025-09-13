@@ -38,9 +38,11 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-
-    fmt.Println("Original file path:", info.OriginalPath)
-    fmt.Println("Deleted at:", info2parser.FiletimeToTime(info.DeletionTime))
+    fmt.Printf("Header       : %d\n", info2.Header)
+	fmt.Printf("FileSize       : %d octets\n", info2.FileSize)
+	fmt.Printf("DeletionTime   : %s\n", info2parser.FiletimeToTime(info2.DeletionTime).Format(time.RFC3339))
+	fmt.Printf("FileNameLength : %d\n", info2.FileNameLength)
+	fmt.Printf("OriginalPath : %s\n", info2.OriginalPath)
 }
 ```
 

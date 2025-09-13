@@ -1,0 +1,47 @@
+name: build-cross
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:    [ linux, windows, darwin ]
+        arch:  [ amd64, arm64 ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          cache: true
+
+      - name: Download deps
+        run: go mod download
+
+      - name: Build (${{ matrix.os }}/${{ matrix.arch }})
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+        run: |
+          mkdir -p dist
+          EXT=""
+          if [ "${GOOS}" = "windows" ]; then EXT=".exe"; fi
+          OUT="dist/info2parser-${GOOS}-${GOARCH}${EXT}"
+          go build -trimpath -ldflags="-s -w" -o "${OUT}" ./info2parser
+
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: info2parser-${{ matrix.os }}-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
